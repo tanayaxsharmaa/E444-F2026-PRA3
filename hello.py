@@ -66,6 +66,12 @@ def chat():
 
     return {"reply": reply}
 
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
+
 @app.route('/user/<name>')
 def user(name):
     return render_template('user.html', name=name)
