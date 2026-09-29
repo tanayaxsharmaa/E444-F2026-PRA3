@@ -17,3 +17,46 @@
     </span>
 </div>
 {% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    var log = document.getElementById("chat-log");
+    var input = document.getElementById("message");
+
+    function addLine(speaker, text) {
+        var line = document.createElement("p");
+        var who = document.createElement("strong");
+        who.textContent = speaker + ": ";
+        line.appendChild(who);
+        line.appendChild(document.createTextNode(text));
+        log.appendChild(line);
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function sendMessage() {
+        var message = input.value.trim();
+        if (!message) {
+            return;
+        }
+        addLine("You", message);
+        input.value = "";
+
+        fetch("/chat", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({message: message})
+        })
+            .then(function (response) { return response.json(); })
+            .then(function (data) { addLine("Bot", data.reply); })
+            .catch(function () { addLine("Bot", "Sorry, something went wrong."); });
+    }
+
+    document.getElementById("send").addEventListener("click", sendMessage);
+    input.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    });
+</script>
+{% endblock %}
