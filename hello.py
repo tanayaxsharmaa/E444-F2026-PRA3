@@ -11,6 +11,11 @@ app.config['SECRET_KEY'] = 'some hard to guess string'
 bootstrap = Bootstrap(app)
 moment = Moment(app)
 
+
+def is_uoft_email(email):
+    return email is not None and 'utoronto' in email.lower()
+
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = NameForm()
@@ -21,11 +26,21 @@ def index():
             flash('Looks like you have changed your name!')
         session['name'] = form.name.data
         session['email'] = form.email.data
+        if is_uoft_email(form.email.data):
+            return redirect(url_for('chatbot'))
         return redirect(url_for('index'))
 
     return render_template('index.html', form=form, name=session.get('name'),
                            email=session.get('email'),
                            current_time=datetime.now(timezone.utc))
+
+
+@app.route('/chatbot')
+def chatbot():
+    if not is_uoft_email(session.get('email')):
+        return redirect(url_for('index'))
+    return render_template('chatbot.html', name=session.get('name'),
+                           email=session.get('email'))
 
 @app.route('/user/<name>')
 def user(name):
